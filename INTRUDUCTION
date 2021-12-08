@@ -1,0 +1,67 @@
+First we need to set up the repository
+Update the apt package index and install packages to allow apt to use a repository over HTTPS:
+
+ sudo apt-get update
+ sudo apt-get install \
+    ca-certificates \
+    curl \
+    gnupg \
+lsb-release
+then add Docker’s official GPG key:
+
+ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+third use the following command to set up the stable repository. To add the nightly or test repository, add the word nightly or test (or both) after the word stable in the commands below. Learn about nightly and test channels.
+
+ echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+And the we need to install the docker engine
+Update the apt package index, and install the latest version of Docker Engine and containerd:
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+To install a specific version of Docker Engine, list the available versions in the repo, then select and install: apt-cache madison docker-ce
+sudo apt-get install docker-ce=<VERSION_STRING> docker-ce-cli=<VERSION_STRING> containerd.io
+Verify that Docker Engine is installed correctly by running the hello-world image:
+sudo docker run hello-world
+
+we need to define the project
+Change into your project directory: cd my_wordpress/
+
+Then create a docker-compose.yml file that starts your WordPress blog and a separate MySQL instance with volume mounts for data persistence:
+version: "3.9"
+    
+services:
+  db:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: somewordpress
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    
+  wordpress:
+    depends_on:
+      - db
+    image: wordpress:latest
+    volumes:
+      - wordpress_data:/var/www/html
+    ports:
+      - "8000:80"
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+volumes:
+  db_data: {}
+  wordpress_data: {}
+
+and then use: docker-compose up -d
+to build the project and run
+Then we insert http:// localhost to get into WordPress
+We got WordPress in a web browser.
